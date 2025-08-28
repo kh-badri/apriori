@@ -8,31 +8,39 @@ use CodeIgniter\Router\RouteCollection;
 
 // --- RUTE YANG WAJIB LOGIN (Dijaga oleh 'auth') ---
 $routes->group('', ['filter' => 'auth'], function ($routes) {
+
+    // Rute utama aplikasi
     $routes->get('/', 'Home::index');
-    $routes->get('home', 'Home::index');
+    $routes->addRedirect('home', '/'); // Alihkan 'home' ke '/'
 
     // Rute untuk halaman Akun
     $routes->get('akun', 'Akun::index');
     $routes->post('akun/update_profil', 'Akun::updateProfil');
     $routes->post('akun/update_sandi', 'Akun::updateSandi');
 
-    // --- RUTE CRUD UNTUK DATASET ---
-    $routes->get('dataset', 'DatasetController::index');
-    $routes->post('dataset/upload', 'DatasetController::upload');
-    $routes->get('dataset/edit/(:num)', 'DatasetController::edit/$1');
-    $routes->post('dataset/update/(:num)', 'DatasetController::update/$1');
-    $routes->post('dataset/delete/(:num)', 'DatasetController::delete/$1');
+    // --- RUTE UNTUK DATASET ---
+    // Menggunakan 'resource' untuk rute CRUD standar (lebih ringkas)
+    $routes->resource('dataset', [
+        'only' => ['index', 'edit', 'update', 'delete']
+    ]);
+    // Rute custom untuk upload tetap dipisah
+    $routes->post('dataset/upload', 'Dataset::upload');
+    $routes->post('dataset/hapus-semua', 'Dataset::hapusSemua', ['as' => 'dataset.hapusSemua']);
 
     // --- RUTE UNTUK ANALISIS DATA ---
-    $routes->get('analisis', 'AnalisisController::index', ['as' => 'analisis.index']);
-    $routes->post('analisis/perform', 'AnalisisController::performAnalysis', ['as' => 'analisis.perform']);
+    $routes->get('analisis', 'Analisis::index', ['as' => 'analisis.index']);
+    $routes->post('analisis/proses', 'Analisis::proses', ['as' => 'analisis.proses']);
+    $routes->post('analisis/simpan', 'Analisis::simpan', ['as' => 'analisis.simpan']);
+
+    $routes->get('history', 'History::index', ['as' => 'history.index']);
+    $routes->post('history/delete/(:num)', 'History::delete/$1', ['as' => 'history.delete']);
 });
 
 
 // --- RUTE UNTUK TAMU (Dijaga oleh 'guest') ---
 $routes->group('', ['filter' => 'guest'], function ($routes) {
-    $routes->get('login', 'Auth::index');
-    $routes->get('register', 'Auth::register');
+    $routes->get('login', 'Auth::index', ['as' => 'login']);
+    $routes->get('register', 'Auth::register', ['as' => 'register']);
 });
 
 
